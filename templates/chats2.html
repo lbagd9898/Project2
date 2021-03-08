@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> Chat Away! </title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
+  <!-- <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/chats1.css') }}"> -->
+  <style>
+
+  html {
+    height: 100%
+  }
+
+  body {
+    height: 100%
+    display: flex;
+  }
+
+.right-container {
+    display: flex;
+    flex-direction: column;
+    flex-basis: 75%;
+  }
+
+  .sidebar {
+  border-right: 2px solid black;
+  border-top: 2px solid black;
+  margin: 0;
+  padding: 0;
+  width: 25%;
+  background-color: #f1f1f1;
+  position: fixed;
+  height: 100%;
+  overflow: auto;
+  z-index: 7;
+}
+
+#chan-list{
+  display: flex;
+  justify-content: flex-end;
+  flex-direction: column;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#chan-list li{
+  background-color: white;
+  display: inline;
+  border: solid;
+  border-width: 1px 1px 1px 1px;
+  border-color: #73AD21;
+  font-family: impact;
+  height: 50px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+#chan-list li:hover{
+  background-color: #73AD21;
+  opacity: 1;
+  -webkit-animation-name: none;
+  animation-play-state: initial;
+}
+
+@keyframes fade {
+  0% { background-color: white;}
+  50% { background-color: #73AD21;}
+  100% { background-color: white;}
+}
+
+
+  /* #msgs {
+    z-index: 6;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  } */
+
+  #msgs {
+    margin-left: 25%;
+    z-index: 6;
+    list-style-type: none;
+    padding: 0;
+    margin-top: 110px;
+    z-index: 5;
+  }
+
+  #msgs li {
+    border-bottom: solid 2px black;
+    height: 50px;
+    align-items: center;
+    background-color: #f1f1f1;
+  }
+
+  /* #msgs li {
+    margin-left: 30%;
+    z-index: 6;
+    display: inline;
+    border: solid;
+    border-width: 1px;
+    height: 50px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-color: #f1f1f1;
+  } */
+
+#chan-input[type=text]{
+  width: 75%;
+}
+
+#submit {
+  width: 24%;
+}
+
+  #header {
+    font-size: 150px;
+    color: #73AD21;
+    font-family: impact;
+    border-bottom: 2px solid black;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 110px;
+    padding: 0;
+    z-index: 6;
+    background-color: white;
+  }
+
+  #header h2 {
+    color: black;
+  }
+
+  #header h3 {
+    color: black;
+    font-size: 30px;
+  }
+
+  #chat-header{
+    font-family: impact;
+    font-size: 30px;
+    }
+
+
+  .channel {
+    height: 30%;
+    background-color: white;
+    border: 1px solid #73AD21;
+    padding: 15px 10px;
+    font-size: 100%;
+    font-family: impact;
+    animation-name: fade;
+    animation-duration: 1s;
+    animation-play-state: paused;
+    animation-iteration-count: 1;
+  }
+
+  #new-msg {
+    margin-left: 25%;
+    padding:  20px 10px;
+    border-top: 1px solid black;
+    background-color: white;
+  }
+
+  #new-msg input {
+    width: 90%;
+  }
+
+  #new-msg button {
+    width: 9%;
+    display: inline-block;;
+    vertical-align: middle;
+  }
+
+
+  body {
+      padding-bottom: 50px;
+  }
+
+  </style>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+  <script type="text/javascript">
+
+  </script>
+  <script>
+
+    //load the DOM
+    document.addEventListener('DOMContentLoaded', () => {
+
+    //get current user
+    var user = "{{user}}";
+    localStorage.setItem("user", user);
+    console.log(user);
+
+    //disable channel creation form until there is input
+    document.querySelector('#submit').disabled = true;
+
+    //enable submit button only if there is text in input field
+    document.querySelector('#chan-input').onkeyup = () => {
+      if (document.querySelector('#chan-input').value.length > 0) {
+          document.querySelector('#submit').disabled = false;
+      } else {
+          document.querySelector('#submit').disabled = true;
+      }
+    };
+
+    //load last visited channel
+    var msg_dict = JSON.parse('{{messages | tojson}}');
+    var cur_chan = localStorage.getItem("current_channel");
+    if (cur_chan && msg_dict[cur_chan]) {
+      var cur_chan = localStorage.getItem("current_channel");
+      var msg_dict = JSON.parse('{{messages | tojson}}');
+      const msgs = msg_dict[cur_chan];
+      document.querySelector("#channel-header").innerHTML = cur_chan;
+      document.querySelector("#msgs").innerHTML = ""
+      for (let i=0; i<msgs.length; i++) {
+        let li = document.createElement('li');
+        li.innerHTML=msgs[i];
+        document.querySelector('#msgs').append(li);
+      };
+    };
+
+
+
+    //instantiate socket
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+
+    //check to see that socket connects
+      socket.on('connect', function() {
+        console.log('check 2', socket.connected);
+      });
+
+      //sends channel info to server once new channel is input
+      document.querySelector('#new-chan').onsubmit = () => {
+        let contents = document.querySelector('#chan-input').value;
+        socket.emit("create channel", {'contents': contents});
+        document.querySelector('#chan-input').value = ''
+        return false;
+      };
+
+      //sends message, username, and date-time info to server when new message is sent
+      document.querySelector('#new-msg').onsubmit = () => {
+        let msg_contents = document.querySelector('#msg-input').value;
+        let current_channel = localStorage.getItem('current_channel')
+        let user = localStorage.getItem("user")
+        let user_bold = user.bold()
+        let date = new Date();
+        var dd = date.getDate();
+        var mm = date.getMonth()+1;
+        var yy = date.getFullYear();
+        var tt = date.toLocaleTimeString();
+        var today = dd + '/' + mm + '/' + yy + " " + tt
+        let contents = user_bold + ': ' + msg_contents + ' (' + today + ')'
+        socket.emit("new_message", {'contents': contents, 'current_channel': current_channel, 'user': user});
+        document.querySelector('#msg-input').value=''
+        return false;
+      }
+
+      //recieves info from server to add channel to channel listchannel list and display channel
+      socket.on('add channel', channel => {
+          var li = document.createElement('li');
+          li.innerHTML = channel
+          li.setAttribute('class', 'channel');
+          document.querySelector('#chan-list').append(li);
+          document.querySelector('#submit').disabled = true;
+          localStorage.setItem("current_channel", channel)
+          location.reload();
+          return false;
+        });
+
+      //signal from server to alert a message if new channel name is already taken
+      socket.on('channel exists', message => {
+        alert(message);
+        document.querySelector('#submit').disabled = true;
+      });
+
+      //display messages when channel is clicked on
+      socket.on('display_messages', data => {
+        var msgd_chan = data.channel_name;
+        document.querySelector('#msgs').innerHTML = ''
+        document.querySelector('#channel-header').innerHTML = msgd_chan;
+        var msgs = data.msgs
+        for (let i=0; i<msgs.length; i++) {
+          var msg_li = document.createElement('li');
+          msg_li.innerHTML=msgs[i];
+          document.querySelector('#msgs').append(msg_li);
+        };
+      });
+
+      //display messages when channel is clicked on
+      socket.on('add_message', data => {
+        var current_chan = localStorage.getItem('current_channel');
+        var msgd_chan = data.channel_name;
+        if (current_chan===msgd_chan) {
+          document.querySelector('#msgs').innerHTML = ''
+          document.querySelector('#channel-header').innerHTML = data.channel_name;
+          var msgs = data.msgs
+          for (let i=0; i<msgs.length; i++) {
+            var msg_li = document.createElement('li');
+            msg_li.innerHTML=msgs[i];
+            document.querySelector('#msgs').append(msg_li);
+          };
+        } else if (current_chan !== msgd_chan) {
+          console.log('yes')
+          document.querySelectorAll('.channel').forEach(li => {
+            if (li.innerHTML === msgd_chan) {
+              li.style.animationPlayState = 'running';
+              li.classList.remove("channel");
+              void li.offsetWidth;
+              li.classList.add("channel");
+            };
+          });
+        };
+      });
+
+
+      //change channel with list item
+      document.querySelectorAll('.channel').forEach(li => {
+        li.onclick = () => {
+          var channel_name = li.innerHTML
+          localStorage.setItem('current_channel', channel_name)
+          socket.emit("get_messages", {'channel_name': channel_name})
+        };
+      });
+    });
+
+  </script>
+</head>
+  <body>
+  <div class="sidebar">
+    <h2 id="chat-header" class="text-center"> Join Chat Rooms </h2>
+      <form id="new-chan">
+        <input id="chan-input" autocomplete="off" name="new_channel" autofocus placeholder="Create a New Channel" type="text">
+        <button id="submit" class="btn btn-outline-success btn-sm" type="submit">Create</button>
+      </form>
+    <ul id="chan-list">
+      {% for chan in channels %}
+      <li class="channel">{{ chan }}</li>
+      {% endfor %}
+  </ul>
+    </div>
+    <div class="right-container">
+    <div id="header" class="header">
+    <h1 class="text-center"> Welcome, {{user}}! </h1>
+    <h3 class="text-center" id="channel-header"> Select a channel </h3>
+  </div>
+    <ul id="msgs">
+      <li> item </li>
+      <li> item </li>
+  </ul>
+    <form id="new-msg" class="fixed-bottom">
+      <input id="msg-input" autocomplete="off" name="new_messsage" autofocus placeholder="Send a Chat!" type="text"></textarea>
+      <button id="submit" class="btn btn-outline-success btn-sm" type="submit">Send</button>
+    </form>
+      </div>
+    </body>
+</html>

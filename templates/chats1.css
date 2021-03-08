@@ -1,0 +1,57 @@
+*{
+  font-family: impact;
+  background-color: : red;
+}
+ .sidebar {
+ margin: 0;
+ padding: 0;
+ width: 25%;
+ background-color: #f1f1f1;
+ position: fixed;
+ height: 100%;
+ overflow: auto;
+}
+
+#chan[type=text]{
+ width: 75%;
+}
+
+#submit {
+ width: 24%;
+}
+
+ .chan-list {
+   float: left;
+   border: 1px solid #ccc;
+   background-color: #f1f1f1;
+   width: 100%;
+   height: 300px;
+ }
+
+ #header {
+   font-size: 150px;
+   color: #73AD21;
+   font-family: impact
+ }
+
+ #chat-header{
+   font-family: impact;
+   font-size: 30px;
+   }
+
+ #chan-list{
+   display: flex;
+   justify-content: flex-end;
+   flex-direction: column;
+ }
+
+ .channel {
+   border-radius: 15px;
+   border: 2px solid #73AD21;
+   padding: 20px;
+   font-size: 100%
+ }
+
+ body {
+     padding-bottom: 50px;
+ }

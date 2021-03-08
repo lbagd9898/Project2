@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<head>
+  <script>
+
+    // const channels = document.querySelector('#chan-list');
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+  //make button being disabled the default
+      document.querySelector('#submit').disabled = true;
+
+      //enable button only if there is text in input field
+      document.querySelector('#chan').onkeyup = () => {
+        if (document.querySelector('#chan').value.length > 0)
+            document.querySelector('#submit').disabled = false;
+        else
+            document.querySelector('#submit').disabled = true;
+      };
+
+      document.querySelector('#new-chan').onsubmit = () => {
+
+        //create new list element
+        const li = document.createElement('li');
+        li.innerHTML = document.querySelector('#chan').value;
+
+
+        //add item to the list
+        document.querySelector('#chan-list').append(li);
+
+        //clear field and disable the button aain
+        document.querySelector('#chan').value = '';
+        document.querySelector('#submit').disabled = true;
+
+        // var channels=document.querySelector(#chan-list);
+        var channels = document.querySelector('#chan-list');
+        localStorage.setItem('channels', channels.innerHTML);
+
+        return false;
+      };
+
+      var channels = document.querySelector('#chan-list');
+      var saved = localStorage.getItem('channels');
+      if (saved) {
+        channels.innerHTML=saved
+      }
+
+    });
+  </script>
+  <title> Chat Away! </title>
+</head>
+  <body>
+    <h1> Welcome, {{user}}! </h1>
+    <h2> Join Chat Rooms </h2>
+    <ul id="chan-list">
+      </ul>
+      <form id="new-chan">
+        <input id="chan" autocomplete="off" autofocus placeholder="Create a New Channel" type="text">
+        <input id="submit" type="submit">
+      </form>
+    </body>
+</html>

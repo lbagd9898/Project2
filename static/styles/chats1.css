@@ -1,0 +1,30 @@
+*{
+  color: blue;
+}
+
+#header {
+  font-size: 100px;
+  color: #73AD21;
+  font-family: impact
+}
+
+#chat-header{
+  font-family: impact
+}
+
+#chan-list{
+  display: flex;
+  justify-content: flex-end;
+  flex-direction: column;
+}
+
+.channel {
+  border-radius: 15px;
+  border: 2px solid #73AD21;
+  padding: 20px;
+  font-size: 150%
+}
+
+body {
+    padding-bottom: 50px;
+}
